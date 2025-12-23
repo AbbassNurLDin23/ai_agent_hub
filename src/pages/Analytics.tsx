@@ -7,7 +7,7 @@ import { useMetricsStream } from '@/hooks/useMetricsStream';
 export default function Analytics() {
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const { agents } = useAgents();
-  const { metrics, isConnected } = useMetricsStream(selectedAgentId);
+  const { metrics, isConnected, connectionStatus } = useMetricsStream(selectedAgentId);
 
   return (
     <Layout>
@@ -17,6 +17,7 @@ export default function Analytics() {
         selectedAgentId={selectedAgentId}
         onAgentChange={setSelectedAgentId}
         isConnected={isConnected}
+        connectionStatus={connectionStatus}
       />
     </Layout>
   );

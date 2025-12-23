@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { format } from 'date-fns';
+import { ChartEmptyState } from './ChartEmptyState';
 
 interface TokensChartProps {
   data: { created_at: string; tokens_processed: number }[];
@@ -24,9 +25,7 @@ export function TokensChart({ data }: TokensChartProps) {
       <h3 className="text-lg font-semibold mb-4">Tokens Processed</h3>
       <div className="h-[300px]">
         {chartData.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-muted-foreground">
-            No data available
-          </div>
+          <ChartEmptyState type="tokens" />
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData}>
@@ -69,6 +68,9 @@ export function TokensChart({ data }: TokensChartProps) {
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 fill="url(#tokenGradient)"
+                isAnimationActive={true}
+                animationDuration={300}
+                animationEasing="ease-out"
               />
             </AreaChart>
           </ResponsiveContainer>

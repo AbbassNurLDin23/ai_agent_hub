@@ -1,4 +1,4 @@
-import { User, Bot, Clock, Zap } from 'lucide-react';
+import { User, Bot, Clock, Zap, Timer } from 'lucide-react';
 import { Message } from '@/types';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -10,10 +10,17 @@ interface ChatMessageProps {
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
 
+  const formatLatency = (ms: number) => {
+    if (ms >= 1000) {
+      return `${(ms / 1000).toFixed(1)}s`;
+    }
+    return `${ms}ms`;
+  };
+
   return (
     <div
       className={cn(
-        'flex gap-3 fade-in',
+        'flex gap-3 animate-fade-in',
         isUser ? 'flex-row-reverse' : 'flex-row'
       )}
     >
@@ -46,10 +53,18 @@ export function ChatMessage({ message }: ChatMessageProps) {
             {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
           </span>
 
+          {/* Assistant message metadata - latency & tokens */}
+          {!isUser && message.latency_ms > 0 && (
+            <span className="flex items-center gap-1 text-muted-foreground/70">
+              <Timer className="w-3 h-3" />
+              {formatLatency(message.latency_ms)}
+            </span>
+          )}
+
           {!isUser && message.tokens_used > 0 && (
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 text-muted-foreground/70">
               <Zap className="w-3 h-3" />
-              {message.tokens_used} tokens • {message.latency_ms}ms
+              {message.tokens_used} tokens
             </span>
           )}
         </div>

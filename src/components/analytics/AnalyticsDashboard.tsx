@@ -1,8 +1,11 @@
-import { MessageSquare, Zap, Clock, Activity, Wifi, WifiOff } from 'lucide-react';
+import { MessageSquare, Zap, Clock, Activity } from 'lucide-react';
 import { MetricsStreamData, Agent } from '@/types';
+import { ConnectionStatus } from '@/hooks/useMetricsStream';
 import { StatCard } from './StatCard';
 import { LatencyChart } from './LatencyChart';
 import { TokensChart } from './TokensChart';
+import { ConnectionStatusBadge } from './ConnectionStatusBadge';
+import { AgentContextBadge } from './AgentContextBadge';
 import {
   Select,
   SelectContent,
@@ -17,6 +20,7 @@ interface AnalyticsDashboardProps {
   selectedAgentId: string | null;
   onAgentChange: (agentId: string | null) => void;
   isConnected: boolean;
+  connectionStatus?: ConnectionStatus;
 }
 
 export function AnalyticsDashboard({
@@ -24,7 +28,7 @@ export function AnalyticsDashboard({
   agents,
   selectedAgentId,
   onAgentChange,
-  isConnected,
+  connectionStatus = 'disconnected',
 }: AnalyticsDashboardProps) {
   const current = metrics?.current || {
     messages_count: 0,
@@ -43,46 +47,36 @@ export function AnalyticsDashboard({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gradient mb-1">Analytics</h1>
-          <p className="text-muted-foreground">
-            Real-time performance metrics and insights
-          </p>
-        </div>
-
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border">
-            {isConnected ? (
-              <>
-                <Wifi className="w-4 h-4 text-success" />
-                <span className="text-xs text-success">Live</span>
-              </>
-            ) : (
-              <>
-                <WifiOff className="w-4 h-4 text-destructive" />
-                <span className="text-xs text-destructive">Disconnected</span>
-              </>
-            )}
+          <div>
+            <h1 className="text-3xl font-bold text-gradient mb-1">Analytics</h1>
+            <p className="text-muted-foreground">
+              Real-time performance metrics and insights
+            </p>
           </div>
-
-          <Select
-            value={selectedAgentId || 'all'}
-            onValueChange={(v) => onAgentChange(v === 'all' ? null : v)}
-          >
-            <SelectTrigger className="w-[200px] bg-secondary/50">
-              <SelectValue placeholder="All Agents" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Agents</SelectItem>
-              {agents.map((agent) => (
-                <SelectItem key={agent.id} value={agent.id}>
-                  {agent.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ConnectionStatusBadge status={connectionStatus} />
         </div>
+
+        <Select
+          value={selectedAgentId || 'all'}
+          onValueChange={(v) => onAgentChange(v === 'all' ? null : v)}
+        >
+          <SelectTrigger className="w-[200px] bg-secondary/50">
+            <SelectValue placeholder="All Agents" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Agents</SelectItem>
+            {agents.map((agent) => (
+              <SelectItem key={agent.id} value={agent.id}>
+                {agent.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
+      {/* Agent Context Badge */}
+      <AgentContextBadge agents={agents} selectedAgentId={selectedAgentId} />
 
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

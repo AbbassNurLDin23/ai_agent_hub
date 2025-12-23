@@ -20,8 +20,8 @@ interface AgentListProps {
   agents: Agent[];
   selectedAgentId: string | null;
   onSelectAgent: (id: string) => void;
-  onCreateAgent: (data: { name: string; system_prompt: string; model: string }) => Promise<void>;
-  onUpdateAgent: (id: string, data: Partial<Agent>) => Promise<void>;
+  onCreateAgent: (data: { name: string; system_prompt: string; model: string }) => Promise<unknown>;
+  onUpdateAgent: (id: string, data: Partial<Agent>) => Promise<unknown>;
   onDeleteAgent: (id: string) => Promise<void>;
   onChatWithAgent: (id: string) => void;
   isLoading?: boolean;

@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { format } from 'date-fns';
+import { ChartEmptyState } from './ChartEmptyState';
 
 interface LatencyChartProps {
   data: { created_at: string; avg_latency_ms: number; last_response_latency_ms: number }[];
@@ -25,9 +26,7 @@ export function LatencyChart({ data }: LatencyChartProps) {
       <h3 className="text-lg font-semibold mb-4">Response Latency</h3>
       <div className="h-[300px]">
         {chartData.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-muted-foreground">
-            No data available
-          </div>
+          <ChartEmptyState type="latency" />
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
@@ -65,6 +64,9 @@ export function LatencyChart({ data }: LatencyChartProps) {
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4, fill: 'hsl(var(--primary))' }}
+                isAnimationActive={true}
+                animationDuration={300}
+                animationEasing="ease-out"
               />
               <Line
                 type="monotone"
@@ -74,6 +76,9 @@ export function LatencyChart({ data }: LatencyChartProps) {
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4, fill: 'hsl(var(--accent))' }}
+                isAnimationActive={true}
+                animationDuration={300}
+                animationEasing="ease-out"
               />
             </LineChart>
           </ResponsiveContainer>

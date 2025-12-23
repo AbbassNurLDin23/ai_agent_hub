@@ -15,7 +15,7 @@ import {
 
 interface AgentFormProps {
   agent?: Agent | null;
-  onSubmit: (data: { name: string; system_prompt: string; model: string }) => Promise<void>;
+  onSubmit: (data: { name: string; system_prompt: string; model: string }) => Promise<unknown>;
   onCancel: () => void;
   isLoading?: boolean;
 }

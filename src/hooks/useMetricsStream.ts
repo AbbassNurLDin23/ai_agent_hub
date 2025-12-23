@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MetricsStreamData } from '@/types';
 
+export type ConnectionStatus = 'connected' | 'reconnecting' | 'disconnected';
+
 export function useMetricsStream(agentId: string | null) {
   const [metrics, setMetrics] = useState<MetricsStreamData | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
   const [error, setError] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptRef = useRef(0);
 
   const connect = useCallback(() => {
     if (eventSourceRef.current) {
@@ -25,8 +28,9 @@ export function useMetricsStream(agentId: string | null) {
 
     eventSource.onopen = () => {
       console.log('Metrics stream connected');
-      setIsConnected(true);
+      setConnectionStatus('connected');
       setError(null);
+      reconnectAttemptRef.current = 0;
     };
 
     eventSource.onmessage = (event) => {
@@ -45,12 +49,14 @@ export function useMetricsStream(agentId: string | null) {
 
     eventSource.onerror = (e) => {
       console.error('Metrics stream error:', e);
-      setIsConnected(false);
       eventSource.close();
+      
+      reconnectAttemptRef.current += 1;
+      setConnectionStatus('reconnecting');
 
       // Attempt to reconnect after 5 seconds
       reconnectTimeoutRef.current = setTimeout(() => {
-        console.log('Attempting to reconnect...');
+        console.log(`Attempting to reconnect (attempt ${reconnectAttemptRef.current})...`);
         connect();
       }, 5000);
     };
@@ -65,7 +71,8 @@ export function useMetricsStream(agentId: string | null) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
-    setIsConnected(false);
+    setConnectionStatus('disconnected');
+    reconnectAttemptRef.current = 0;
   }, []);
 
   useEffect(() => {
@@ -76,9 +83,13 @@ export function useMetricsStream(agentId: string | null) {
     };
   }, [connect, disconnect]);
 
+  // Legacy compatibility
+  const isConnected = connectionStatus === 'connected';
+
   return {
     metrics,
     isConnected,
+    connectionStatus,
     error,
     reconnect: connect,
   };
