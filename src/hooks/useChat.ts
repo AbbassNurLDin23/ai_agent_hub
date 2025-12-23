@@ -47,7 +47,12 @@ export function useChat(agentId: string | null) {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      setMessages((data || []).map((m) => ({
+        ...m,
+        role: m.role as 'user' | 'assistant' | 'system',
+        latency_ms: m.latency_ms ?? 0,
+        tokens_used: m.tokens_used ?? 0,
+      })));
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast.error('Failed to load messages');
