@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // keep default output unless you REALLY need custom output
+  // output   = "generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id           String   @id @default(uuid())
+  name         String
+  systemPrompt String   @map("system_prompt")
+  model        String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  conversations Conversation[]
+  metrics       MetricsSnapshot?
+
+  @@map("agents")
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  agentId   String   @map("agent_id")
+  title     String?  // optional
+  createdAt DateTime @default(now()) @map("created_at")
+
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@index([agentId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  role           String   // "user" | "assistant" | "system"
+  content        String
+  tokensUsed     Int?     @map("tokens_used")
+  latencyMs      Int?     @map("latency_ms")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("messages")
+}
+
+model MetricsSnapshot {
+  // 1 row per agent (upsert)
+  agentId               String  @id @map("agent_id")
+  messagesCount         Int     @default(0) @map("messages_count")
+  tokensProcessed       Int     @default(0) @map("tokens_processed")
+  avgLatencyMs          Int     @default(0) @map("avg_latency_ms")
+  lastResponseLatencyMs Int     @default(0) @map("last_response_latency_ms")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("metrics_snapshots")
+}
