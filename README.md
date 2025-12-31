@@ -129,6 +129,43 @@ Example:
 
 ---
 
+## Setup With Docker
+
+### Prerequisites
+- Docker
+- Docker Compose
+
+### Steps
+
+1) **Create environment file**
+```bash
+cp .env.example .env
+```
+Fill in provider keys you want to use (do not commit `.env`).
+
+2) **Start everything**
+```bash
+docker-compose up -d --build
+```
+
+3) **Check logs**
+```bash
+docker-compose logs -f
+```
+
+### Access
+- Frontend: `http://localhost:8080`
+- Backend: `http://localhost:4000`
+- Health check: `http://localhost:4000/healthz`
+
+### Notes
+- Prisma migrations run automatically in Docker on backend startup:
+  - `npx prisma generate`
+  - `npx prisma migrate deploy`
+
+
+---
+
 ## Setup Local Without Docker
 
 ### Prerequisites
@@ -174,42 +211,6 @@ npm install
 npm run dev
 ```
 Frontend usually runs on `http://localhost:5173`.
-
----
-
-## Setup With Docker
-
-### Prerequisites
-- Docker
-- Docker Compose
-
-### Steps
-
-1) **Create environment file**
-```bash
-cp .env.example .env
-```
-Fill in provider keys you want to use (do not commit `.env`).
-
-2) **Start everything**
-```bash
-docker-compose up -d --build
-```
-
-3) **Check logs**
-```bash
-docker-compose logs -f
-```
-
-### Access
-- Frontend: `http://localhost:8080`
-- Backend: `http://localhost:4000`
-- Health check: `http://localhost:4000/healthz`
-
-### Notes
-- Prisma migrations run automatically in Docker on backend startup:
-  - `npx prisma generate`
-  - `npx prisma migrate deploy`
 
 ---
 
@@ -320,4 +321,5 @@ Change ports in `.env`:
 - `VITE_PORT=8081`
 
 ---
+
 
