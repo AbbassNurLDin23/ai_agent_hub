@@ -11,6 +11,7 @@ import { capabilitiesRouter } from "./routes/capabilities.routes";
 
 import { notFoundMiddleware } from "./middlewares/notFound.middleware";
 import { errorMiddleware } from "./middlewares/error.middleware";
+import { providersRouter } from "./routes/providers.routes";
 
 export const app = express();
 
@@ -44,11 +45,12 @@ app.get("/healthz", (_req, res) => res.json({ ok: true }));
 
 // Routes
 app.use(healthRouter);
-app.use("/api", capabilitiesRouter); // ✅ NEW
+app.use("/api", capabilitiesRouter);
 app.use("/api/agents", agentsRouter);
 app.use("/api", chatRouter);
 app.use("/api/metrics", metricsRouter);
 app.use("/api/debug", debugRouter);
+app.use("/api/providers", providersRouter);
 
 // Error handlers
 app.use(notFoundMiddleware);

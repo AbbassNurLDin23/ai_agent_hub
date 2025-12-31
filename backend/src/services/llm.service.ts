@@ -6,6 +6,12 @@ import OpenAI from "openai";
 import type { ChatCompletionMessageParam as OpenAIChatMsg } from "openai/resources/chat/completions";
 import type { ChatCompletionMessageParam as GroqChatMsg } from "groq-sdk/resources/chat/completions";
 
+import {
+  type Provider,
+  defaultModelId,
+  isModelAllowed,
+} from "../config/providers";
+
 export type Role = "system" | "user" | "assistant";
 export type ChatMsg = { role: Role; content: string };
 
@@ -25,20 +31,6 @@ export interface LLMResponse {
   tokensUsed?: number;
 }
 
-type Provider = "groq" | "google" | "openai";
-
-type ProviderEnvModel = {
-  id: string;
-  name: string;
-  description?: string;
-};
-
-type ProviderEnvItem = {
-  provider: Provider;
-  enabled: boolean;
-  models: ProviderEnvModel[];
-};
-
 function env(name: string): string {
   return (process.env[name] ?? "").trim();
 }
@@ -54,60 +46,18 @@ function detectProviderFromKey(k: string): Provider | null {
   const key = (k ?? "").trim();
   if (!key) return null;
 
-  if (key.startsWith("gsk_")) return "groq"; // Groq
-  if (key.startsWith("sk-")) return "openai"; // OpenAI
-  if (key.startsWith("AIza")) return "google"; // Google
+  if (key.startsWith("gsk_")) return "groq";
+  if (key.startsWith("sk-")) return "openai";
+  if (key.startsWith("AIza")) return "google";
 
   return null;
-}
-
-function parseProvidersJson(): ProviderEnvItem[] {
-  const raw = env("PROVIDERS_JSON");
-  if (!raw) return [];
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed as ProviderEnvItem[];
-  } catch {
-    return [];
-  }
-}
-
-function hasProviderKey(provider: Provider): boolean {
-  if (provider === "groq") return !!env("GROQ_API_KEY");
-  if (provider === "google") return !!env("GOOGLE_API_KEY");
-  if (provider === "openai") return !!env("OPENAI_API_KEY");
-  return false;
-}
-
-/** pick first configured model from PROVIDERS_JSON for this provider */
-function firstConfiguredModelId(provider: Provider): string | "" {
-  const items = parseProvidersJson();
-  const item = items.find((x) => x?.provider === provider);
-  if (!item || !item.enabled) return "";
-  if (!hasProviderKey(provider)) return "";
-  const id = item.models?.[0]?.id?.trim();
-  return id || "";
-}
-
-function defaultModelId(provider: Provider): string {
-  // 1) from PROVIDERS_JSON (first model)
-  const fromCfg = firstConfiguredModelId(provider);
-  if (fromCfg) return fromCfg;
-
-  // 2) from env defaults
-  if (provider === "groq")
-    return env("GROQ_DEFAULT_MODEL") || "llama-3.3-70b-versatile";
-  if (provider === "google")
-    return env("GOOGLE_DEFAULT_MODEL") || "gemini-2.5-flash";
-  return env("OPENAI_DEFAULT_MODEL") || "gpt-4o-mini";
 }
 
 /**
  * Returns provider + modelId + apiKey
  * Supports:
  *  - "provider/modelId" => uses backend env key
- *  - legacy API key stored in agent.model => chooses a default modelId
+ *  - legacy API key stored in agent.model => chooses a default modelId from providers config
  */
 function parseAgentModel(value: string): {
   provider: Provider;
@@ -129,6 +79,13 @@ function parseAgentModel(value: string): {
     if (!modelId) {
       throw new Error(
         `Invalid model "${raw}". Expected "provider/modelId" e.g. "groq/llama-3.3-70b-versatile".`
+      );
+    }
+
+    // Validate against providers.json (enabled + allowed models)
+    if (!isModelAllowed(provider, modelId)) {
+      throw new Error(
+        `Model not allowed: "${provider}/${modelId}". Check providers config and API keys.`
       );
     }
 

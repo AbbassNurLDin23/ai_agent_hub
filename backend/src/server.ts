@@ -1,14 +1,16 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load .env from project root
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
-
 import { app } from "./app";
+
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// // Load .env from project root
+// dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
+console.log("[ENV] PROVIDERS_FILE =", process.env.PROVIDERS_FILE);
 
 const port = Number(process.env.PORT || 4000);
 const host = "0.0.0.0";

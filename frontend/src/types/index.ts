@@ -4,7 +4,7 @@ export interface Agent {
   id: string;
   name: string;
   systemPrompt: string;
-  model: string; // now stored as "provider/modelId"
+  model: string; // stored as "provider/modelId"
   createdAt: string;
   updatedAt: string;
 }

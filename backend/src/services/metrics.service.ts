@@ -1,11 +1,8 @@
 import { prisma } from "../db";
 
-type MinimalMetricsRow = {
-  messagesCount: number;
-  tokensProcessed: number;
-  avgLatencyMs: number;
-  lastResponseLatencyMs: number;
-};
+type MetricsRow = Awaited<
+  ReturnType<typeof prisma.metricsSnapshot.findMany>
+>[number];
 
 export async function updateMetricsForAgent(
   agentId: string,
@@ -51,26 +48,24 @@ export async function getMetrics(agentId?: string) {
     return prisma.metricsSnapshot.findUnique({ where: { agentId } });
   }
 
-  const rows = await prisma.metricsSnapshot.findMany();
+  const rows = (await prisma.metricsSnapshot.findMany()) as MetricsRow[];
 
-  const messagesCount = rows.reduce(
+  const messagesCount = rows.reduce<number>(
     (sum, r) => sum + (r.messagesCount ?? 0),
     0
   );
 
-  const tokensProcessed = rows.reduce(
+  const tokensProcessed = rows.reduce<number>(
     (sum, r) => sum + (r.tokensProcessed ?? 0),
     0
   );
 
-  // Weighted avg latency: better than averaging averages
-  const totalSamples = rows.reduce((sum, r) => {
-    // Each "exchange" adds 2 messages. So #responses ≈ messagesCount / 2
+  const totalSamples = rows.reduce<number>((sum, r) => {
     const exchanges = Math.max(0, Math.floor((r.messagesCount ?? 0) / 2));
     return sum + exchanges;
   }, 0);
 
-  const weightedLatencySum = rows.reduce((sum, r) => {
+  const weightedLatencySum = rows.reduce<number>((sum, r) => {
     const exchanges = Math.max(0, Math.floor((r.messagesCount ?? 0) / 2));
     const avg = r.avgLatencyMs ?? 0;
     return sum + avg * exchanges;

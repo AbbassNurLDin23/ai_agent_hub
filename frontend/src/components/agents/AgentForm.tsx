@@ -143,7 +143,8 @@ export function AgentForm({
 
             {noModelsAvailable && (
               <p className="text-xs text-destructive">
-                No models available. Check PROVIDERS_JSON + API keys in .env.
+                No models available. Check your provider API keys and
+                providers.json (PROVIDERS_FILE) configuration.
               </p>
             )}
           </div>
