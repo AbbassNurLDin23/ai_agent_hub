@@ -305,6 +305,4 @@ VITE_PORT=8081
 
 ---
 
-## License
 
-ISC
